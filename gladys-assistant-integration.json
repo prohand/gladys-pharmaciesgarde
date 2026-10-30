@@ -1,0 +1,797 @@
+{
+  "manifest_version": 1,
+  "type": "device",
+  "name": "Pharmacies de garde",
+  "description": {
+    "en": "Find the pharmacy on duty and the pharmacies open near your home, in scenes and on the dashboard.",
+    "fr": "La pharmacie de garde et les pharmacies ouvertes près de chez vous, en scène et au tableau de bord.",
+    "de": "Finde die Notdienst-Apotheke und offene Apotheken in deiner Nähe, in Szenen und auf dem Dashboard.",
+    "es": "Encuentre la farmacia de guardia y las farmacias abiertas cerca de casa, en escenas y en el panel."
+  },
+  "version": "1.0.0",
+  "docker_image": "ghcr.io/prohand/gladys-pharmaciesgarde:1.0.0",
+  "gladys_version": ">=5.3.0",
+  "cover_image": "https://raw.githubusercontent.com/prohand/gladys-pharmaciesgarde/main/cover.png",
+  "categories": ["services"],
+  "keywords": [
+    "pharmacie",
+    "pharmacie de garde",
+    "3237",
+    "apotheke",
+    "notdienst",
+    "farmacia de guardia",
+    "openstreetmap",
+    "santé",
+    "médicaments"
+  ],
+  "transports": ["local", "cloud"],
+  "location": true,
+  "config_schema": [
+    {
+      "key": "intro",
+      "type": "section",
+      "label": {
+        "en": "Getting started",
+        "fr": "Pour commencer",
+        "de": "Erste Schritte",
+        "es": "Primeros pasos"
+      },
+      "description": {
+        "en": "Two sources, use one or both. Local: paste the duty rota of your sector (town hall, local paper), it never leaves Gladys. Cloud: the pharmacies open around your house, from OpenStreetMap, and a rota published online. The position of the house comes from Gladys.",
+        "fr": "Deux sources, une seule ou les deux. Locale : collez le tableau des gardes de votre secteur (mairie, journal local), il ne quitte jamais Gladys. Cloud : les pharmacies ouvertes autour de la maison, via OpenStreetMap, et un tableau publié en ligne. La position de la maison vient de Gladys.",
+        "de": "Zwei Quellen, eine oder beide. Lokal: Füge den Notdienstplan deines Bezirks ein (Gemeinde, Lokalzeitung), er verlässt Gladys nie. Cloud: die geöffneten Apotheken rund um dein Haus, aus OpenStreetMap, und ein online veröffentlichter Plan. Der Standort des Hauses kommt aus Gladys.",
+        "es": "Dos fuentes, una o las dos. Local: pegue el cuadro de turnos de su zona (ayuntamiento, prensa local), nunca sale de Gladys. Nube: las farmacias abiertas alrededor de la casa, desde OpenStreetMap, y un cuadro publicado en línea. La ubicación de la casa viene de Gladys."
+      },
+      "links": [
+        {
+          "url": "https://github.com/prohand/gladys-pharmaciesgarde/blob/main/docs/en.md",
+          "label": {
+            "en": "Integration documentation",
+            "fr": "Documentation de l'intégration",
+            "de": "Dokumentation der Integration",
+            "es": "Documentación de la integración"
+          }
+        },
+        {
+          "url": "https://www.3237.fr/",
+          "label": {
+            "en": "3237 (France)",
+            "fr": "3237 (France)",
+            "de": "3237 (Frankreich)",
+            "es": "3237 (Francia)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "house",
+      "type": "select",
+      "source": "houses",
+      "label": {
+        "en": "House",
+        "fr": "Maison",
+        "de": "Haus",
+        "es": "Casa"
+      },
+      "description": {
+        "en": "The house whose surroundings are searched. Empty: the first house of Gladys with a position.",
+        "fr": "La maison autour de laquelle chercher. Vide : la première maison de Gladys qui a une position.",
+        "de": "Das Haus, um das herum gesucht wird. Leer: das erste Haus in Gladys mit Standort.",
+        "es": "La casa alrededor de la cual buscar. Vacío: la primera casa de Gladys con ubicación."
+      },
+      "required": false
+    },
+    {
+      "key": "latitude",
+      "type": "number",
+      "label": {
+        "en": "Latitude (optional)",
+        "fr": "Latitude (facultatif)",
+        "de": "Breitengrad (optional)",
+        "es": "Latitud (opcional)"
+      },
+      "description": {
+        "en": "Only to search somewhere else than a house of Gladys. Fill in both coordinates.",
+        "fr": "Uniquement pour chercher ailleurs qu'autour d'une maison de Gladys. Renseignez les deux coordonnées.",
+        "de": "Nur um woanders als um ein Haus von Gladys zu suchen. Beide Koordinaten ausfüllen.",
+        "es": "Solo para buscar en otro lugar que una casa de Gladys. Indique las dos coordenadas."
+      },
+      "placeholder": {
+        "en": "e.g. 45.7640",
+        "fr": "ex. 45.7640",
+        "de": "z. B. 48.1371",
+        "es": "p. ej. 40.4168"
+      },
+      "required": false,
+      "min": -90,
+      "max": 90
+    },
+    {
+      "key": "longitude",
+      "type": "number",
+      "label": {
+        "en": "Longitude (optional)",
+        "fr": "Longitude (facultatif)",
+        "de": "Längengrad (optional)",
+        "es": "Longitud (opcional)"
+      },
+      "placeholder": {
+        "en": "e.g. 4.8357",
+        "fr": "ex. 4.8357",
+        "de": "z. B. 11.5754",
+        "es": "p. ej. -3.7038"
+      },
+      "required": false,
+      "min": -180,
+      "max": 180
+    },
+    {
+      "key": "radius_km",
+      "type": "number",
+      "label": {
+        "en": "Search radius (km)",
+        "fr": "Rayon de recherche (km)",
+        "de": "Suchradius (km)",
+        "es": "Radio de búsqueda (km)"
+      },
+      "description": {
+        "en": "How far around the house pharmacies are listed (1 to 30 km).",
+        "fr": "Jusqu'où chercher les pharmacies autour de la maison (1 à 30 km).",
+        "de": "Wie weit um das Haus herum Apotheken gesucht werden (1 bis 30 km).",
+        "es": "Hasta qué distancia buscar farmacias alrededor de la casa (1 a 30 km)."
+      },
+      "required": false,
+      "default": 5,
+      "min": 1,
+      "max": 30
+    },
+    {
+      "key": "use_openstreetmap",
+      "type": "boolean",
+      "label": {
+        "en": "Open pharmacies (OpenStreetMap)",
+        "fr": "Pharmacies ouvertes (OpenStreetMap)",
+        "de": "Geöffnete Apotheken (OpenStreetMap)",
+        "es": "Farmacias abiertas (OpenStreetMap)"
+      },
+      "description": {
+        "en": "Cloud. Lists the pharmacies around the house with their opening hours, once a day. Without a rota, the nearest open one is offered.",
+        "fr": "Cloud. Liste les pharmacies autour de la maison avec leurs horaires, une fois par jour. Sans tableau de garde, la plus proche ouverte est proposée.",
+        "de": "Cloud. Listet die Apotheken rund um das Haus mit ihren Öffnungszeiten, einmal am Tag. Ohne Notdienstplan wird die nächste geöffnete angeboten.",
+        "es": "Nube. Lista las farmacias alrededor de la casa con su horario, una vez al día. Sin cuadro de turnos, se propone la abierta más cercana."
+      },
+      "required": false,
+      "default": true
+    },
+    {
+      "key": "planning",
+      "type": "string",
+      "label": {
+        "en": "Duty rota (local)",
+        "fr": "Tableau de garde (local)",
+        "de": "Notdienstplan (lokal)",
+        "es": "Cuadro de turnos (local)"
+      },
+      "description": {
+        "en": "One turn per line or separated by |: date [> end] ; name ; address ; phone. A date alone is the whole day. JSON is accepted too. See the documentation.",
+        "fr": "Une garde par ligne ou séparées par | : date [> fin] ; nom ; adresse ; téléphone. Une date seule vaut la journée entière. Le JSON est accepté aussi. Voir la documentation.",
+        "de": "Ein Dienst pro Zeile oder getrennt durch |: Datum [> Ende] ; Name ; Adresse ; Telefon. Ein Datum allein gilt für den ganzen Tag. JSON wird auch akzeptiert. Siehe die Dokumentation.",
+        "es": "Un turno por línea o separados por |: fecha [> fin] ; nombre ; dirección ; teléfono. Una fecha sola vale todo el día. También se acepta JSON. Consulte la documentación."
+      },
+      "placeholder": {
+        "en": "2026-11-01 ; Central Pharmacy ; 12 Main St ; 0123456789 | 2026-11-08 ; …",
+        "fr": "2026-11-01 ; Pharmacie du Centre ; 12 rue de la Paix ; 0123456789 | 2026-11-08 ; …",
+        "de": "2026-11-01 ; Stadt-Apotheke ; Hauptstr. 12 ; 0891234567 | 2026-11-08 ; …",
+        "es": "2026-11-01 ; Farmacia Central ; Calle Mayor 12 ; 912345678 | 2026-11-08 ; …"
+      },
+      "required": false
+    },
+    {
+      "key": "planning_url",
+      "type": "string",
+      "label": {
+        "en": "Rota published online (cloud)",
+        "fr": "Tableau de garde en ligne (cloud)",
+        "de": "Online veröffentlichter Plan (Cloud)",
+        "es": "Cuadro de turnos en línea (nube)"
+      },
+      "description": {
+        "en": "Address of a file in the same format (text or JSON), read every refresh interval: an open data portal, your town's site, a file on your network.",
+        "fr": "Adresse d'un fichier au même format (texte ou JSON), relu à chaque intervalle d'actualisation : portail open data, site de la mairie, fichier sur votre réseau.",
+        "de": "Adresse einer Datei im selben Format (Text oder JSON), bei jedem Aktualisierungsintervall gelesen: Open-Data-Portal, Website der Gemeinde, Datei in deinem Netzwerk.",
+        "es": "Dirección de un archivo con el mismo formato (texto o JSON), leído en cada intervalo de actualización: portal de datos abiertos, web del ayuntamiento, archivo en su red."
+      },
+      "placeholder": {
+        "en": "https://example.org/duty.json",
+        "fr": "https://exemple.fr/gardes.json",
+        "de": "https://beispiel.de/notdienst.json",
+        "es": "https://ejemplo.es/guardias.json"
+      },
+      "required": false
+    },
+    {
+      "key": "country",
+      "type": "select",
+      "label": {
+        "en": "Country",
+        "fr": "Pays",
+        "de": "Land",
+        "es": "País"
+      },
+      "description": {
+        "en": "Which official duty finder the widget links to.",
+        "fr": "Le service officiel de garde vers lequel pointe le widget.",
+        "de": "Zu welcher offiziellen Notdienstsuche das Widget verlinkt.",
+        "es": "A qué buscador oficial de guardias enlaza el widget."
+      },
+      "required": false,
+      "default": "fr",
+      "options": [
+        {
+          "value": "fr",
+          "label": {
+            "en": "France (3237)",
+            "fr": "France (3237)",
+            "de": "Frankreich (3237)",
+            "es": "Francia (3237)"
+          }
+        },
+        {
+          "value": "de",
+          "label": {
+            "en": "Germany (aponet)",
+            "fr": "Allemagne (aponet)",
+            "de": "Deutschland (aponet)",
+            "es": "Alemania (aponet)"
+          }
+        },
+        {
+          "value": "es",
+          "label": {
+            "en": "Spain",
+            "fr": "Espagne",
+            "de": "Spanien",
+            "es": "España"
+          }
+        },
+        {
+          "value": "other",
+          "label": {
+            "en": "Other",
+            "fr": "Autre",
+            "de": "Andere",
+            "es": "Otro"
+          }
+        }
+      ]
+    },
+    {
+      "key": "timezone",
+      "type": "string",
+      "label": {
+        "en": "Time zone",
+        "fr": "Fuseau horaire",
+        "de": "Zeitzone",
+        "es": "Zona horaria"
+      },
+      "description": {
+        "en": "The time zone of the rota and of the opening hours, an IANA name.",
+        "fr": "Le fuseau horaire du tableau de garde et des horaires d'ouverture, un nom IANA.",
+        "de": "Die Zeitzone des Notdienstplans und der Öffnungszeiten, ein IANA-Name.",
+        "es": "La zona horaria del cuadro de turnos y de los horarios, un nombre IANA."
+      },
+      "placeholder": {
+        "en": "Europe/Paris",
+        "fr": "Europe/Paris",
+        "de": "Europe/Berlin",
+        "es": "Europe/Madrid"
+      },
+      "required": false,
+      "default": "Europe/Paris"
+    },
+    {
+      "key": "refresh_hours",
+      "type": "number",
+      "label": {
+        "en": "Refresh interval (h)",
+        "fr": "Intervalle d'actualisation (h)",
+        "de": "Aktualisierungsintervall (h)",
+        "es": "Intervalo de actualización (h)"
+      },
+      "description": {
+        "en": "How often OpenStreetMap and the online rota are read again, in hours. Open/closed is recomputed every minute.",
+        "fr": "Fréquence de relecture d'OpenStreetMap et du tableau en ligne, en heures. Ouvert/fermé est recalculé chaque minute.",
+        "de": "Wie oft OpenStreetMap und der Online-Plan neu gelesen werden, in Stunden. Geöffnet/geschlossen wird jede Minute neu berechnet.",
+        "es": "Cada cuánto se vuelven a leer OpenStreetMap y el cuadro en línea, en horas. Abierto/cerrado se recalcula cada minuto."
+      },
+      "required": false,
+      "default": 24,
+      "min": 1,
+      "max": 168
+    },
+    {
+      "key": "planning_warning_days",
+      "type": "number",
+      "label": {
+        "en": "Rota ending warning (days)",
+        "fr": "Alerte fin de tableau (jours)",
+        "de": "Warnung Planende (Tage)",
+        "es": "Aviso fin de turnos (días)"
+      },
+      "description": {
+        "en": "The \"Rota running out\" trigger fires when fewer days are left. 0 turns it off.",
+        "fr": "Le déclencheur « Tableau de garde bientôt terminé » se lance quand il reste moins de jours. 0 le désactive.",
+        "de": "Der Auslöser „Notdienstplan läuft bald aus“ wird ausgelöst, wenn weniger Tage übrig sind. 0 schaltet ihn aus.",
+        "es": "El disparador «Cuadro de turnos a punto de acabar» se activa cuando quedan menos días. 0 lo desactiva."
+      },
+      "required": false,
+      "default": 7,
+      "min": 0,
+      "max": 60
+    },
+    {
+      "key": "overpass_url",
+      "type": "string",
+      "label": {
+        "en": "Overpass server (advanced)",
+        "fr": "Serveur Overpass (avancé)",
+        "de": "Overpass-Server (erweitert)",
+        "es": "Servidor Overpass (avanzado)"
+      },
+      "description": {
+        "en": "Leave empty for the public overpass-api.de server.",
+        "fr": "Laissez vide pour le serveur public overpass-api.de.",
+        "de": "Leer lassen für den öffentlichen Server overpass-api.de.",
+        "es": "Déjelo vacío para el servidor público overpass-api.de."
+      },
+      "placeholder": {
+        "en": "https://overpass-api.de/api/interpreter",
+        "fr": "https://overpass-api.de/api/interpreter",
+        "de": "https://overpass-api.de/api/interpreter",
+        "es": "https://overpass-api.de/api/interpreter"
+      },
+      "required": false
+    }
+  ],
+  "actions": [
+    {
+      "key": "test_sources",
+      "label": {
+        "en": "Test the sources",
+        "fr": "Tester les sources",
+        "de": "Quellen testen",
+        "es": "Probar las fuentes"
+      },
+      "timeout_seconds": 60
+    },
+    {
+      "key": "show_planning",
+      "label": {
+        "en": "Show the next turns",
+        "fr": "Voir les prochaines gardes",
+        "de": "Nächste Dienste anzeigen",
+        "es": "Ver los próximos turnos"
+      },
+      "timeout_seconds": 15,
+      "fields": [
+        {
+          "key": "days",
+          "type": "number",
+          "label": {
+            "en": "Days ahead",
+            "fr": "Jours à venir",
+            "de": "Tage voraus",
+            "es": "Días por delante"
+          },
+          "required": false,
+          "default": 14,
+          "min": 1,
+          "max": 60
+        }
+      ]
+    }
+  ],
+  "widgets": [
+    {
+      "key": "pharmacies",
+      "label": {
+        "en": "Pharmacies",
+        "fr": "Pharmacies",
+        "de": "Apotheken",
+        "es": "Farmacias"
+      },
+      "description": {
+        "en": "The pharmacy on duty or open nearby, and the open pharmacies around.",
+        "fr": "La pharmacie de garde ou ouverte la plus proche, et les pharmacies ouvertes autour.",
+        "de": "Die Notdienst- oder nächste geöffnete Apotheke und die geöffneten Apotheken in der Nähe.",
+        "es": "La farmacia de guardia o abierta más cercana, y las farmacias abiertas alrededor."
+      },
+      "icon": "plus-square",
+      "settings": [
+        {
+          "key": "count",
+          "type": "number",
+          "label": {
+            "en": "Pharmacies listed",
+            "fr": "Pharmacies listées",
+            "de": "Aufgelistete Apotheken",
+            "es": "Farmacias listadas"
+          },
+          "description": {
+            "en": "How many pharmacies the list shows (0 to 8).",
+            "fr": "Nombre de pharmacies affichées (0 à 8).",
+            "de": "Wie viele Apotheken die Liste zeigt (0 bis 8).",
+            "es": "Cuántas farmacias muestra la lista (0 a 8)."
+          },
+          "required": false,
+          "default": 4,
+          "min": 0,
+          "max": 8
+        }
+      ],
+      "action_timeout_seconds": 60
+    }
+  ],
+  "scene_triggers": [
+    {
+      "key": "duty_changed",
+      "label": {
+        "en": "The pharmacy on duty changed",
+        "fr": "La pharmacie de garde a changé",
+        "de": "Die Notdienst-Apotheke hat gewechselt",
+        "es": "La farmacia de guardia ha cambiado"
+      },
+      "description": {
+        "en": "A new turn of the rota started, or (without a rota) the nearest open pharmacy changed.",
+        "fr": "Une nouvelle garde a commencé, ou (sans tableau) la pharmacie ouverte la plus proche a changé.",
+        "de": "Ein neuer Dienst hat begonnen oder (ohne Plan) die nächste geöffnete Apotheke hat gewechselt.",
+        "es": "Ha empezado un nuevo turno o (sin cuadro) ha cambiado la farmacia abierta más cercana."
+      },
+      "fields": [
+        {
+          "key": "source",
+          "type": "multi_select",
+          "label": {
+            "en": "Source",
+            "fr": "Source",
+            "de": "Quelle",
+            "es": "Fuente"
+          },
+          "options": [
+            {
+              "value": "planning",
+              "label": {
+                "en": "Typed rota",
+                "fr": "Tableau saisi",
+                "de": "Eingegebener Plan",
+                "es": "Turnos escritos"
+              }
+            },
+            {
+              "value": "remote",
+              "label": {
+                "en": "Published rota",
+                "fr": "Tableau en ligne",
+                "de": "Online-Plan",
+                "es": "Turnos en línea"
+              }
+            },
+            {
+              "value": "osm",
+              "label": {
+                "en": "Open now (OpenStreetMap)",
+                "fr": "Ouverte (OpenStreetMap)",
+                "de": "Geöffnet (OpenStreetMap)",
+                "es": "Abierta (OpenStreetMap)"
+              }
+            }
+          ]
+        }
+      ],
+      "variables": [
+        {
+          "key": "name",
+          "type": "string",
+          "label": {
+            "en": "Pharmacy",
+            "fr": "Pharmacie",
+            "de": "Apotheke",
+            "es": "Farmacia"
+          }
+        },
+        {
+          "key": "address",
+          "type": "string",
+          "label": {
+            "en": "Address",
+            "fr": "Adresse",
+            "de": "Adresse",
+            "es": "Dirección"
+          }
+        },
+        {
+          "key": "phone",
+          "type": "string",
+          "label": {
+            "en": "Phone",
+            "fr": "Téléphone",
+            "de": "Telefon",
+            "es": "Teléfono"
+          }
+        },
+        {
+          "key": "distance_km",
+          "type": "number",
+          "label": {
+            "en": "Distance (km)",
+            "fr": "Distance (km)",
+            "de": "Entfernung (km)",
+            "es": "Distancia (km)"
+          }
+        },
+        {
+          "key": "until",
+          "type": "string",
+          "label": {
+            "en": "Until",
+            "fr": "Jusqu'à",
+            "de": "Bis",
+            "es": "Hasta"
+          }
+        },
+        {
+          "key": "map_url",
+          "type": "string",
+          "label": {
+            "en": "Map link",
+            "fr": "Lien carte",
+            "de": "Kartenlink",
+            "es": "Enlace al mapa"
+          }
+        }
+      ]
+    },
+    {
+      "key": "no_pharmacy_available",
+      "label": {
+        "en": "No pharmacy available",
+        "fr": "Aucune pharmacie disponible",
+        "de": "Keine Apotheke verfügbar",
+        "es": "Ninguna farmacia disponible"
+      },
+      "description": {
+        "en": "Nothing on duty in the rota and nothing open around the house: call the official service.",
+        "fr": "Aucune garde au tableau et rien d'ouvert autour de la maison : appelez le service officiel.",
+        "de": "Kein Dienst im Plan und nichts geöffnet um das Haus: offiziellen Dienst anrufen.",
+        "es": "Ningún turno en el cuadro y nada abierto alrededor de la casa: llame al servicio oficial."
+      }
+    },
+    {
+      "key": "planning_running_out",
+      "label": {
+        "en": "Rota running out",
+        "fr": "Tableau de garde bientôt terminé",
+        "de": "Notdienstplan läuft bald aus",
+        "es": "Cuadro de turnos a punto de acabar"
+      },
+      "description": {
+        "en": "The rota ends soon: time to paste the next one. Fires once a day.",
+        "fr": "Le tableau se termine bientôt : il est temps de coller le suivant. Une fois par jour.",
+        "de": "Der Plan endet bald: Zeit, den nächsten einzufügen. Einmal am Tag.",
+        "es": "El cuadro termina pronto: hora de pegar el siguiente. Una vez al día."
+      },
+      "variables": [
+        {
+          "key": "days_left",
+          "type": "number",
+          "label": {
+            "en": "Days left",
+            "fr": "Jours restants",
+            "de": "Verbleibende Tage",
+            "es": "Días restantes"
+          }
+        },
+        {
+          "key": "last_day",
+          "type": "string",
+          "label": {
+            "en": "Last day",
+            "fr": "Dernier jour",
+            "de": "Letzter Tag",
+            "es": "Último día"
+          }
+        }
+      ]
+    }
+  ],
+  "scene_actions": [
+    {
+      "key": "get_pharmacy",
+      "label": {
+        "en": "Find the pharmacy on duty",
+        "fr": "Trouver la pharmacie de garde",
+        "de": "Notdienst-Apotheke finden",
+        "es": "Buscar la farmacia de guardia"
+      },
+      "description": {
+        "en": "The pharmacy on duty (or the nearest open one) at a given moment, for a message or a condition.",
+        "fr": "La pharmacie de garde (ou la plus proche ouverte) à un moment donné, pour un message ou une condition.",
+        "de": "Die Notdienst-Apotheke (oder die nächste geöffnete) zu einem Zeitpunkt, für eine Nachricht oder Bedingung.",
+        "es": "La farmacia de guardia (o la abierta más cercana) en un momento dado, para un mensaje o una condición."
+      },
+      "timeout_seconds": 10,
+      "fields": [
+        {
+          "key": "moment",
+          "type": "select",
+          "label": {
+            "en": "When",
+            "fr": "Quand",
+            "de": "Wann",
+            "es": "Cuándo"
+          },
+          "required": false,
+          "default": "now",
+          "options": [
+            {
+              "value": "now",
+              "label": {
+                "en": "Now",
+                "fr": "Maintenant",
+                "de": "Jetzt",
+                "es": "Ahora"
+              }
+            },
+            {
+              "value": "tonight",
+              "label": {
+                "en": "Tonight (21:00)",
+                "fr": "Ce soir (21 h)",
+                "de": "Heute Abend (21 Uhr)",
+                "es": "Esta noche (21:00)"
+              }
+            },
+            {
+              "value": "tomorrow",
+              "label": {
+                "en": "Tomorrow (10:00)",
+                "fr": "Demain (10 h)",
+                "de": "Morgen (10 Uhr)",
+                "es": "Mañana (10:00)"
+              }
+            },
+            {
+              "value": "next_sunday",
+              "label": {
+                "en": "Next Sunday (10:00)",
+                "fr": "Dimanche prochain (10 h)",
+                "de": "Nächster Sonntag (10 Uhr)",
+                "es": "Próximo domingo (10:00)"
+              }
+            }
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "key": "found",
+          "type": "boolean",
+          "label": {
+            "en": "Pharmacy found",
+            "fr": "Pharmacie trouvée",
+            "de": "Apotheke gefunden",
+            "es": "Farmacia encontrada"
+          }
+        },
+        {
+          "key": "name",
+          "type": "string",
+          "label": {
+            "en": "Pharmacy",
+            "fr": "Pharmacie",
+            "de": "Apotheke",
+            "es": "Farmacia"
+          }
+        },
+        {
+          "key": "address",
+          "type": "string",
+          "label": {
+            "en": "Address",
+            "fr": "Adresse",
+            "de": "Adresse",
+            "es": "Dirección"
+          }
+        },
+        {
+          "key": "phone",
+          "type": "string",
+          "label": {
+            "en": "Phone",
+            "fr": "Téléphone",
+            "de": "Telefon",
+            "es": "Teléfono"
+          }
+        },
+        {
+          "key": "distance_km",
+          "type": "number",
+          "label": {
+            "en": "Distance (km)",
+            "fr": "Distance (km)",
+            "de": "Entfernung (km)",
+            "es": "Distancia (km)"
+          }
+        },
+        {
+          "key": "until",
+          "type": "string",
+          "label": {
+            "en": "Until",
+            "fr": "Jusqu'à",
+            "de": "Bis",
+            "es": "Hasta"
+          }
+        },
+        {
+          "key": "source",
+          "type": "string",
+          "label": {
+            "en": "Source",
+            "fr": "Source",
+            "de": "Quelle",
+            "es": "Fuente"
+          }
+        },
+        {
+          "key": "map_url",
+          "type": "string",
+          "label": {
+            "en": "Map link",
+            "fr": "Lien carte",
+            "de": "Kartenlink",
+            "es": "Enlace al mapa"
+          }
+        }
+      ]
+    },
+    {
+      "key": "refresh_pharmacies",
+      "label": {
+        "en": "Refresh the pharmacies",
+        "fr": "Actualiser les pharmacies",
+        "de": "Apotheken aktualisieren",
+        "es": "Actualizar las farmacias"
+      },
+      "description": {
+        "en": "Read OpenStreetMap and the online rota again now.",
+        "fr": "Relit OpenStreetMap et le tableau en ligne maintenant.",
+        "de": "Liest OpenStreetMap und den Online-Plan jetzt neu.",
+        "es": "Vuelve a leer OpenStreetMap y el cuadro en línea ahora."
+      },
+      "timeout_seconds": 60,
+      "outputs": [
+        {
+          "key": "found",
+          "type": "boolean",
+          "label": {
+            "en": "Pharmacy found",
+            "fr": "Pharmacie trouvée",
+            "de": "Apotheke gefunden",
+            "es": "Farmacia encontrada"
+          }
+        },
+        {
+          "key": "open_count",
+          "type": "number",
+          "label": {
+            "en": "Open pharmacies",
+            "fr": "Pharmacies ouvertes",
+            "de": "Geöffnete Apotheken",
+            "es": "Farmacias abiertas"
+          }
+        }
+      ]
+    }
+  ]
+}
