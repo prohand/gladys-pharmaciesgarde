@@ -6,6 +6,8 @@ All notable changes to this integration are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-11-16
+
 ### Added
 
 - First version of the Pharmacies de garde integration, started from the
@@ -26,4 +28,5 @@ All notable changes to this integration are documented here. The format follows
   messages, widget, documentation).
 - `SECURITY.md`, `CLAUDE.md`, CI, release and build workflows.
 
-[Unreleased]: https://github.com/prohand/gladys-pharmaciesgarde/commits/main
+[Unreleased]: https://github.com/prohand/gladys-pharmaciesgarde/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/prohand/gladys-pharmaciesgarde/releases/tag/v1.0.1
