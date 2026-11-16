@@ -1,6 +1,6 @@
 {
   "name": "gladys-pharmaciesgarde",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "description": "Gladys Assistant external integration: the pharmacy on duty and the pharmacies open near the house.",
   "type": "module",

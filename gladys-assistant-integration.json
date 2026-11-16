@@ -8,8 +8,8 @@
     "de": "Finde die Notdienst-Apotheke und offene Apotheken in deiner Nähe, in Szenen und auf dem Dashboard.",
     "es": "Encuentre la farmacia de guardia y las farmacias abiertas cerca de casa, en escenas y en el panel."
   },
-  "version": "1.0.1",
-  "docker_image": "ghcr.io/prohand/gladys-pharmaciesgarde:1.0.1",
+  "version": "1.0.2",
+  "docker_image": "ghcr.io/prohand/gladys-pharmaciesgarde:1.0.2",
   "gladys_version": ">=5.3.0",
   "cover_image": "https://raw.githubusercontent.com/prohand/gladys-pharmaciesgarde/main/cover.png",
   "categories": ["services"],
